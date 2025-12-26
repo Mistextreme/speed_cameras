@@ -1,0 +1,1 @@
+-- Automatically generated avarage-speed zones file.
