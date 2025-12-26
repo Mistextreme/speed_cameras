@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Radar Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div id="custom-tooltip" class="hidden"></div>
+
+    <div id="detector-ui" class="hidden">
+        <div class="main-display">
+            <span>RADAR DETECTOR</span>
+        </div>
+        <div id="detector-lights">
+            <div class="light" id="light-blue"></div>
+            <div class="light" id="light-green"></div>
+            <div class="light" id="light-red"></div>
+        </div>
+        <div class="info-display">
+            <span id="distance">---</span>
+            <span class="unit">M</span>
+            <span class="limit-label">LIMIT</span>
+            <span id="limit">--</span>
+            <span id="type">---</span>
+        </div>
+    </div>
+
+    <div id="editor-panel" class="hidden">
+        <div class="panel-header">
+            <h1>Interface Settings</h1>
+            <button id="close-editor-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="panel-content">
+            <div class="settings-group">
+                <h2 class="group-title">Position & Size</h2>
+                <div class="setting-item">
+                    <label for="y-pos" class="setting-label">Vertical
+                        Position (Y)</label>
+                    <input type="range" id="y-pos" min="0" max="100" value="95">
+                </div>
+                <div class="setting-item">
+                    <label for="x-pos" class="setting-label">Horizontal
+                        Position (X)</label>
+                    <input type="range" id="x-pos" min="0" max="100" value="50">
+                </div>
+                <div class="setting-item">
+                    <label for="scale" class="setting-label">Scale</label>
+                    <input type="range" id="scale" min="0.5" max="1.5" step="0.01" value="1.0">
+                </div>
+            </div>
+            <div class="settings-group">
+                <h2 class="group-title">Appearance</h2>
+                <div class="setting-item">
+                    <label for="theme-toggle" class="setting-label">Dark
+                        Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                <label for="mock-detector-toggle" class="setting-label">Show Detector Preview</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="mock-detector-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            </div>
+        </div>
+        <div class="panel-footer" style="justify-content: space-between;">
+            <button id="police-menu-btn" class="action-btn secondary-btn hidden"><i class="fa-solid fa-shield-halved"></i> Police Menu</button>
+            
+            <div>
+                <button id="reset-settings" class="action-btn secondary-btn">Reset</button>
+                <button id="save-settings" class="action-btn primary-btn">Save</button>
+            </div>
+        </div>
+    </div>
+    <div id="radar-logs-app" class="hidden">
+        <div class="header">
+            <h1><i class="fa-solid fa-book"></i> Violations Log</h1>
+            
+            <div class="header-actions">
+                <button id="show-statistics-btn" class="header-btn">
+                    <i class="fa-solid fa-chart-line"></i> View Statistics
+                </button>
+                <div class="divider-vertical"></div>
+                <button id="close-logs-app" class="close-button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="player-search" placeholder="Search by name or identifier...">
+                    <button id="search-button" class="hidden">Search</button>
+                </div>
+                <div class="player-list-container">
+                    <ul id="player-list"></ul>
+                </div>
+            </div>
+            <div class="main-panel">
+                <div id="player-details-placeholder" class="placeholder-message">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <span>Select an entry from the list to view detailed
+                        information.</span>
+                </div>
+                <div id="player-details-view" class="hidden">
+                    <h2>Offender Profile: <span id="selected-player-name"></span></h2>
+                    <div class="player-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">License Revoked</span>
+                            <span class="stat-value" id="revocation-count">0
+                                times</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">License Status</span>
+                            <span class="stat-value" id="license-status">---</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Fines</span>
+                            <span class="stat-value" id="total-fines">0$</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Highest Speeding
+                                Offense</span>
+                            <span class="stat-value" id="max-speeding">N/A</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Most Frequent Offense
+                                Location</span>
+                            <span class="stat-value" id="frequent-zone">N/A</span>
+                        </div>
+                    </div>
+                    <div class="infractions-table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Radar</th>
+                                    <th>Speed (Clocked/Limit)</th>
+                                    <th>Fine</th>
+                                    <th>Penalty Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="infractions-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div id="pagination-controls">
+                        <button id="prev-page" class="page-btn"><i class="fa-solid fa-arrow-left"></i>
+                            Previous</button>
+                        <span id="page-info">Page 1 of 1</span>
+                        <button id="next-page" class="page-btn">Next <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <div id="statistics-view" class="hidden">
+                    <div class="stats-header">
+                        <h2><i class="fa-solid fa-server"></i> General
+                            Server Statistics</h2>
+                        <button id="back-to-logs-btn" class="action-btn secondary-btn"><i
+                                class="fa-solid fa-arrow-left"></i> Back to
+                            Logs</button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3><i class="fa-solid fa-camera-retro"></i> Top
+                                10 Stationary Radars</h3>
+                            <ol id="top-stationary-radars-list"></ol>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fa-solid fa-user-shield"></i> Top 10 Officers (Mobile Radars)</h3>
+                            <ol id="top-officers-radars-list"></ol>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fa-solid fa-road"></i> Top 10
+                                Average Speed Zones</h3>
+                            <ol id="top-average-zones-list"></ol>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fa-solid fa-jet-fighter"></i> Top
+                                10 Speeders (By Speed Over Limit)</h3>
+                            <ol id="top-speeders-list"></ol>
+                        </div>
+                        <div class="stat-card">
+                            <h3><i class="fa-solid fa-sack-dollar"></i> Top
+                                10 Fine Payers</h3>
+                            <ol id="top-fine-payers-list"></ol>
+                        </div>
+                         <div class="stat-card">
+                            <h3><i class="fa-solid fa-hand-holding-dollar"></i> Top 10 Radars (by Fines)</h3>
+                            <ol id="top-earning-radars-list"></ol>
+                        </div>
+
+                        <div class="stat-card">
+                            <h3><i class="fa-solid fa-calendar-day"></i> Today's Earnings</h3>
+                            <div class="daily-earning-value" id="daily-earnings-value">$0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div id="avg-zone-creator" class="hidden">
+    <div class="creator-bar">
+        <div class="instructions">
+            <span><kbd>E</kbd> Add Point</span>
+            <span><kbd>G</kbd> Start Point</span>
+            <span><kbd>Z</kbd> End Point</span>
+            <span><kbd>K</kbd> Radar A&B Size</span>
+            <span><kbd>H</kbd> <button id="place-object-btn" class="action-btn secondary-btn small-btn"><i class="fa-solid fa-cube"></i> Place Object (0/2)</button></span>
+            <span><kbd>Y</kbd> Hold Y</span>
+            <span><kbd>DELETE</kbd> Delete Point</span>
+            <span><kbd>X</kbd> Finish Marking</span>
+            <span><kbd>BACKSPACE</kbd> Cancel</span>
+        </div>
+    </div>
+    <div class="creator-form-container">
+        <h3><i class="fa-solid fa-road"></i> Finalize Zone Creation</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="zone-name">Zone Name</label>
+                <input type="text" id="zone-name" placeholder="E.g., Highway A1" maxlength="27">
+                <span class="input-error-message hidden">That name is already in use!</span>
+                <span class="symbol-limit-message hidden">Maximum character limit (27) reached!</span>
+            </div>
+            <div class="form-group">
+                <label for="zone-limit">Speed Limit (km/h or mph)</label>
+                <input type="number" id="zone-limit" placeholder="E.g., 130">
+            </div>
+            <div class="form-group">
+                <label for="zone-threshold">"Wanted" Threshold (above limit)</label>
+                <input type="number" id="zone-threshold" placeholder="E.g., 50 (leave empty for default)">
+            </div>
+        </div>
+        <div class="form-group penalties-container">
+            <label>Penalty Tiers for Speeding</label>
+            <div class="penalty-tier">
+                <input type="number" id="p1_from" placeholder="From (km/h or mph)">
+                <input type="number" id="p1_to" placeholder="To (km/h or mph)">
+                <input type="number" id="p1_points" placeholder="Points">
+                <input type="number" id="p1_fine" placeholder="Fine ($)">
+            </div>
+            <div class="penalty-tier">
+                <input type="number" id="p2_from" placeholder="From (km/h or mph)">
+                <input type="number" id="p2_to" placeholder="To (km/h or mph)">
+                <input type="number" id="p2_points" placeholder="Points">
+                <input type="number" id="p2_fine" placeholder="Fine ($)">
+            </div>
+            <div class="penalty-tier">
+                <input type="number" id="p3_from" placeholder="From (km/h or mph)">
+                <input type="number" id="p3_to" placeholder="To (km/h or mph)">
+                <input type="number" id="p3_points" placeholder="Points">
+                <input type="number" id="p3_fine" placeholder="Fine ($)">
+            </div>
+        </div>
+
+        <div class="form-footer-wrapper">
+            <div class="form-footer" style="justify-content: space-between;">
+                <div class="footer-group">
+                    <button id="show-avg-templates" class="action-btn secondary-btn"><i class="fa-solid fa-paste"></i> Use Template</button>
+                    <button id="create-avg-template" class="action-btn secondary-btn"><i class="fa-solid fa-floppy-disk"></i> Save as Template</button>
+                </div>
+                <div class="footer-group">
+                    <button id="add-objects-btn" class="action-btn secondary-btn"><i class="fa-solid fa-cube"></i> Place Object (0/2)</button>
+                    <button id="cancel-zone-creation" class="action-btn secondary-btn">Cancel</button>
+                    <button id="save-zone-btn" class="action-btn primary-btn">Save Zone</button>
+                </div>
+            </div>
+            
+            <div id="avg-templates-container" class="templates-panel hidden">
+            </div>
+
+            <div class="integrated-trash-zone hidden">
+                <div class="trash-content">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Drop here to delete</span>
+                </div>
+            </div>
+            </div>
+    </div>
+</div>
+
+<div id="stationary-radar-creator" class="hidden">
+    <div class="creator-form-container">
+        <h3><i class="fa-solid fa-camera-retro"></i> Create Stationary Radar</h3>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="radar-name">Radar Name</label>
+                <input type="text" id="new-radar-name" placeholder="E.g., Main St. Radar" maxlength="27">
+                <span class="input-error-message hidden">That name is already in use!</span>
+                <span class="symbol-limit-message hidden">Maximum character limit (27) reached!</span>
+            </div>
+            <div class="form-group">
+                <label for="radar-limit">Speed Limit (km/h or mph)</label>
+                <input type="number" id="radar-limit" placeholder="E.g., 50">
+            </div>
+            <div class="form-group">
+                <label for="new-radar-threshold">"Wanted" Threshold (above limit)</label>
+                <input type="number" id="new-radar-threshold" placeholder="E.g., 50 (leave empty for default)">
+            </div>
+        </div>
+        <div class="form-group penalties-container">
+            <label>Penalty Tiers for Speeding</label>
+            <div class="penalty-tier">
+                <input type="number" id="sr_p1_from" placeholder="From (km/h or mph)">
+                <input type="number" id="sr_p1_to" placeholder="To (km/h or mph)">
+                <input type="number" id="sr_p1_points" placeholder="Points">
+                <input type="number" id="sr_p1_fine" placeholder="Fine ($)">
+            </div>
+            <div class="penalty-tier">
+                <input type="number" id="sr_p2_from" placeholder="From (km/h or mph)">
+                <input type="number" id="sr_p2_to" placeholder="To (km/h or mph)">
+                <input type="number" id="sr_p2_points" placeholder="Points">
+                <input type="number" id="sr_p2_fine" placeholder="Fine ($)">
+            </div>
+            <div class="penalty-tier">
+                <input type="number" id="sr_p3_from" placeholder="From (km/h or mph)">
+                <input type="number" id="sr_p3_to" placeholder="To (km/h or mph)">
+                <input type="number" id="sr_p3_points" placeholder="Points">
+                <input type="number" id="sr_p3_fine" placeholder="Fine ($)">
+            </div>
+        </div>
+
+        <div class="form-footer-wrapper">
+            <div class="form-footer" style="justify-content: space-between;">
+                <div class="footer-group">
+                    <button id="show-stationary-templates" class="action-btn secondary-btn"><i class="fa-solid fa-paste"></i> Use Template</button>
+                    <button id="create-stationary-template" class="action-btn secondary-btn"><i class="fa-solid fa-floppy-disk"></i> Save as Template</button>
+                </div>
+                <div class="footer-group">
+                    <button id="place-stationary-object" class="action-btn secondary-btn"><i class="fa-solid fa-cube"></i> Place Object</button>
+                    <button id="cancel-stationary-creation" class="action-btn secondary-btn">Cancel</button>
+                    <button id="save-stationary-btn" class="action-btn primary-btn">Save Radar</button>
+                </div>
+            </div>
+            
+            <div id="stationary-templates-container" class="templates-panel hidden">
+            </div>
+
+            <div class="integrated-trash-zone hidden">
+                <div class="trash-content">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Drop here to delete</span>
+                </div>
+            </div>
+            </div>
+    </div>
+</div>
+
+    <div id="radar-admin-app" class="hidden">
+        <div class="header">
+            <h1><i class="fa-solid fa-shield-halved"></i> System
+                Administration</h1>
+            <div class="header-actions">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="admin-theme-toggle">
+                    <span class="slider"></span>
+                </label>
+                <button id="close-admin-app" class="close-button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div class="admin-actions">
+                    <button id="admin-create-stationary" class="action-btn secondary-btn full-width"><i
+                            class="fa-solid fa-camera-retro"></i> New
+                        Stationary Radar</button>
+                    <button id="admin-create-avg-zone" class="action-btn secondary-btn full-width"><i
+                            class="fa-solid fa-road"></i> New Average
+                        Zone</button>
+                </div>
+                <div class="player-list-container">
+                    <ul id="radar-list"></ul>
+                </div>
+                <div class="sidebar-footer">
+                    <div id="version-status-text" class="version-text loading">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Checking version...
+                    </div>
+                </div>
+            </div>
+            <div class="main-panel">
+                <div id="radar-details-placeholder" class="placeholder-message">
+                    <i class="fa-regular fa-hard-drive"></i>
+                    <span>Select a radar or zone to view its settings.</span>
+                </div>
+                <div id="radar-details-view" class="hidden">
+                    
+                    <div class="details-header">
+                        <h2 id="selected-radar-name"></h2>
+                        <div class="details-actions">
+                            <div class="setting-item">
+                                <label for="edit-radar-enabled" class="setting-label">Enabled/Disable this camera</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="edit-radar-enabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-radar-limit">Speed Limit (km/h or mph) -
+                            <span class="tooltip-trigger" data-tooltip="Specify the maximum allowed speed in this zone.">
+                                <i class="fa-solid fa-circle-question"></i>
+                            </span>
+                        </label>
+                        <input type="number" id="edit-radar-limit" placeholder="Enter a new limit...">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-radar-threshold">"Wanted" Threshold (above limit) -
+                            <span class="tooltip-trigger" data-tooltip="Specify how much the player can exceed the speed limit before being marked as wanted (e.g., if the 'Speed Limit' is 50 and the player goes 100, that is 50 over). Leave blank or set to 0 to disable this feature.">
+                                <i class="fa-solid fa-circle-question"></i>
+                            </span>
+                        </label>
+                        <input type="number" id="edit-radar-threshold" placeholder="E.g., 50 (leave empty for default)">
+                    </div>
+                    <div class="form-group penalties-container">
+                        <label>Penalty Tiers -
+                            <span class="tooltip-trigger" data-tooltip="Set fines and points for different speeding ranges. Columns from left to right: From (speed), To (speed), Points, Fine ($).">
+                                <i class="fa-solid fa-circle-question"></i>
+                            </span>
+                        </label>
+                        <div class="penalty-tier">
+                            <input type="number" id="edit_p1_from" placeholder="From (km/h or mph)">
+                            <input type="number" id="edit_p1_to" placeholder="To (km/h or mph)">
+                            <input type="number" id="edit_p1_points" placeholder="Points">
+                            <input type="number" id="edit_p1_fine" placeholder="Fine ($)">
+                        </div>
+                        <div class="penalty-tier">
+                            <input type="number" id="edit_p2_from" placeholder="From (km/h or mph)">
+                            <input type="number" id="edit_p2_to" placeholder="To (km/h or mph)">
+                            <input type="number" id="edit_p2_points" placeholder="Points">
+                            <input type="number" id="edit_p2_fine" placeholder="Fine ($)">
+                        </div>
+                        <div class="penalty-tier">
+                            <input type="number" id="edit_p3_from" placeholder="From (km/h or mph)">
+                            <input type="number" id="edit_p3_to" placeholder="To (km/h or mph)">
+                            <input type="number" id="edit_p3_points" placeholder="Points">
+                            <input type="number" id="edit_p3_fine" placeholder="Fine ($)">
+                        </div>
+                    </div>
+                    <div class="form-footer-grid">
+                        <button id="teleport-to-radar" class="action-btn secondary-btn" title="Teleport"><i class="fa-solid fa-location-crosshairs"></i> TP</button>
+                        <button id="set-gps-location" class="action-btn secondary-btn" title="Set GPS"><i class="fa-solid fa-map-marker-alt"></i> GPS</button>
+                        <button id="export-radar-settings" class="action-btn secondary-btn" title="Copy Settings"><i class="fa-solid fa-copy"></i> Copy</button>
+                        <button id="import-radar-settings" class="action-btn secondary-btn" title="Paste Settings" disabled><i class="fa-solid fa-paste"></i> Paste</button>
+
+                        <button id="edit-radar-position" class="action-btn secondary-btn"><i class="fa-solid fa-arrows-up-down-left-right"></i> Move</button>
+                        
+                        <button id="add-radar-object" class="action-btn secondary-btn hidden"><i class="fa-solid fa-plus"></i> Object</button>
+                        <button id="delete-radar-object" class="action-btn danger-btn hidden"><i class="fa-solid fa-eraser"></i> Object</button>
+
+                        <button id="delete-radar" class="action-btn danger-btn"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                        <button id="save-radar-changes" class="action-btn primary-btn"><i class="fa-solid fa-save"></i> Save</button>
+                    </div>
+                    
+                    </div>
+                </div>
+            </div> </div>
+    </div>
+
+    <div id="object-placement-bar" class="hidden">
+        <div class="creator-bar">
+            <div class="instructions">
+                <span><span id="object-placement-counter" class="action-btn secondary-btn small-btn"
+                        style="pointer-events: none; cursor: default;"><i class="fa-solid fa-cube"></i> Objects:
+                        0/2</span></span>
+                <span><kbd>Mouse wheel</kbd> Change height</span>
+                <span><kbd>←</kbd> <kbd>→</kbd> Rotate object</span>
+                <span><kbd>E</kbd> Place object</span>
+                <span><kbd>BACKSPACE</kbd> Cancel</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="stationary-object-placement-bar" class="hidden">
+        <div class="creator-bar">
+            <div class="instructions">
+                <span><kbd>Mouse wheel</kbd> Change height</span>
+                <span><kbd>←</kbd> <kbd>→</kbd> Rotate object</span>
+                <span><kbd>E</kbd> Place object</span>
+                <span><kbd>BACKSPACE</kbd> Cancel</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="collect-prompt" class="hidden">
+        <div class="prompt-header">
+            <i class="fa-solid fa-satellite-dish"></i>
+            <span>SPEED CAMERA INFO</span>
+        </div>
+        <div class="prompt-content">
+            <div class="prompt-line">
+                <span>Amount:</span>
+                <span class="prompt-value" id="radar-amount">0.00$</span>
+            </div>
+            <div class="prompt-line">
+                <span>Camera name:</span>
+                <span class="prompt-value" id="radar-name">N/A</span>
+            </div>
+            <div class="prompt-line">
+                <span>Last collected by:</span>
+                <span class="prompt-value" id="last-collector-name">N/A</span>
+            </div>
+        </div>
+        <div class="prompt-footer">
+            Press <span id="collect-key" class="key">E</span>, to collect
+        </div>
+    </div>
+        <div id="polyzone-height-bar" class="hidden">
+            <div class="creator-bar">
+                <div class="instructions"
+                    style="flex-direction: column; gap: 8px; align-items: center; padding: 8px 12px;">
+                    <span><kbd>Hold Y</kbd> | Zone height adjustment: <kbd>Mouse wheel</kbd></span>
+                    <hr class="separator">
+                    <span id="polyzone-height-value" class="value-display" style="width: 100%; display: flex; justify-content: center;">Height: 10.0m</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="trigger-regulation-bar" class="hidden">
+            <div class="creator-bar">
+                <div class="instructions"
+                    style="flex-direction: column; gap: 8px; align-items: center; padding: 8px 12px;">
+                    <span><kbd>Hold K</kbd> | Trigger size adjustment</span>
+                    <span><i class="fa-solid fa-arrows-up-down"></i> Height: <kbd>Mouse wheel</kbd></span>
+                    <span><i class="fa-solid fa-arrows-left-right"></i> Width: <kbd>LMB</kbd> + <kbd>Mouse wheel</kbd></span>
+                    <hr class="separator">
+                    <span id="trigger-size-value" class="value-display" style="width: 100%; display: flex; justify-content: center;">Width: 5.0m | Height: 5.0m</span>
+                </div>
+            </div>
+        </div>
+        <div id="confirmation-dialog" class="hidden">
+            <div class="confirmation-content">
+                <h3>Are you sure you want to continue?</h3>
+                <p id="confirmation-text">We recommend placing the object where it is visible to players. You can also collect money from objects.</p>
+                <div class="confirmation-footer">
+                    <button id="confirm-btn-no" class="action-btn secondary-btn">No, go back</button>
+                    <button id="confirm-btn-yes" class="action-btn primary-btn">Yes, save</button>
+                </div>
+            </div>
+        </div>
+        <div id="trikojis-creator-panel" class="panel hidden" style="width: 500px;">
+        <div class="panel-header">
+            <h1>Mobile radar configuration</h1>
+        </div>
+        <div id="trikojis-error-message" class="nui-error-box hidden"></div>
+        <div class="panel-content">
+            <div class="form-group">
+                <label for="trikojis-limit">Allowed speed (km/h or mph)</label>
+                <input type="number" id="trikojis-limit" placeholder="E.g., 50">
+            </div>
+            <div class="form-group penalties-container">
+                <label>Penalty tiers (for speeding)</label>
+                <div class="penalty-tier">
+                    <input type="number" id="trikojis_p1_from" placeholder="From">
+                    <input type="number" id="trikojis_p1_to" placeholder="To">
+                    <input type="number" id="trikojis_p1_points" placeholder="Points">
+                    <input type="number" id="trikojis_p1_fine" placeholder="Fine ($)">
+                </div>
+                <div class="penalty-tier">
+                    <input type="number" id="trikojis_p2_from" placeholder="From">
+                    <input type="number" id="trikojis_p2_to" placeholder="To">
+                    <input type="number" id="trikojis_p2_points" placeholder="Points">
+                    <input type="number" id="trikojis_p2_fine" placeholder="Fine ($)">
+                </div>
+                <div class="penalty-tier">
+                    <input type="number" id="trikojis_p3_from" placeholder="From">
+                    <input type="number" id="trikojis_p3_to" placeholder="To">
+                    <input type="number" id="trikojis_p3_points" placeholder="Points">
+                    <input type="number" id="trikojis_p3_fine" placeholder="Fine ($)">
+                </div>
+            </div>
+            <div class="setting-item">
+                <label for="trikojis-blip" class="setting-label">Show on map (Blip)</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="trikojis-blip">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <button id="trikojis-cancel" class="action-btn secondary-btn">Cancel</button>
+            <button id="trikojis-save" class="action-btn primary-btn">Activate radar</button>
+        </div>
+    </div>
+        <div id="trikojis-object-placement-bar" class="hidden">
+        <div class="creator-bar">
+            <div class="instructions">
+                <span><kbd>Mouse Wheel</kbd> Change height</span>
+                <span><kbd>←</kbd> <kbd>→</kbd> Rotate object</span>
+                <span><kbd>E</kbd> Place object</span>
+                <span><kbd>BACKSPACE</kbd> Cancel</span>
+            </div>
+        </div>
+    </div>
+    <div id="trikojis-info-panel" class="hidden">
+        <div class="prompt-header">
+            <i class="fa-solid fa-camera"></i>
+            <span>MOBILE RADAR MANAGEMENT</span>
+        </div>
+        <div class="prompt-content">
+            <div class="prompt-line">
+                <span>Speed limit:</span>
+                <span class="prompt-value" id="trikojis-info-limit">N/A</span>
+            </div>
+            <div class="prompt-line">
+                <span>Placed by:</span>
+                <span class="prompt-value" id="trikojis-info-owner">N/A</span>
+            </div>
+            <div class="prompt-line">
+                <span>Battery left:</span>
+                <span class="prompt-value" id="trikojis-info-battery">N/A</span>
+            </div>
+            <div class="prompt-line">
+                <span>Violations recorded:</span>
+                <span class="prompt-value" id="trikojis-info-fines">0</span>
+            </div>
+            <div class="prompt-line">
+                <span>Total fines collected:</span>
+                <span class="prompt-value" id="trikojis-info-money">0$</span>
+            </div>
+        </div>
+            <div class="prompt-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-size: 12px;">
+                <span id="trikojis-edit-text"></span>
+                <span id="trikojis-collect-text"></span>
+                <span id="trikojis-remove-text"></span>
+            </div>
+        </div>
+    </div>
+    <div id="snapshot-container" class="hidden">
+        <div class="snapshot-header">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>SPEEDING DETECTED</span>
+        </div>
+        <div class="snapshot-content">
+            <div class="snapshot-line"><span>RADAR:</span> <span id="snap-radar-name"></span></div>
+            <div class="snapshot-line"><span>VEHICLE:</span> <span id="snap-vehicle-model"></span></div>
+            <div class="snapshot-line"><span>PLATE:</span> <span id="snap-vehicle-plate"></span></div>
+            <div class="snapshot-line"><span>DATE:</span> <span id="snap-timestamp"></span></div>
+        </div>
+        <div class="snapshot-speed">
+            <div class="speed-box">
+                <div class="speed-label">DETECTED</div>
+                <div class="speed-value" id="snap-speed-clocked"></div>
+            </div>
+            <div class="speed-box">
+                <div class="speed-label">LIMIT</div>
+                <div class="speed-value" id="snap-speed-limit"></div>
+            </div>
+        </div>
+    </div>
+    <div id="detector-container" class="hidden">
+        <img src="police_antiradar_detector.png" alt="Detector Background">
+        <div id="detector-display">
+            <div class="display-section left">
+                <span class="label">POLICE</span>
+            </div>
+            <div class="display-section center">
+                <span id="distance-value" class="value">--</span>
+            </div>
+            <div class="display-section right">
+                <span id="plate-value" class="value">--</span>
+                <div id="signal-bars">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="police-editor-panel" class="hidden">
+        <div class="panel-header">
+            <h1>Police Detector Settings</h1>
+            <button id="police-close-editor-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="panel-content">
+            <div class="settings-group">
+                <h2 class="group-title">Position & Size</h2>
+                <div class="setting-item">
+                    <label for="police-y-pos" class="setting-label">Vertical Position (Y)</label>
+                    <input type="range" id="police-y-pos" min="0" max="100" value="95">
+                </div>
+                <div class="setting-item">
+                    <label for="police-x-pos" class="setting-label">Horizontal Position (X)</label>
+                    <input type="range" id="police-x-pos" min="0" max="100" value="50">
+                </div>
+                <div class="setting-item">
+                    <label for="police-scale" class="setting-label">Scale</label>
+                    <input type="range" id="police-scale" min="0.5" max="2.5" step="0.01" value="1.0">
+                </div>
+                <div class="settings-group">
+                <h2 class="group-title">Appearance</h2>
+                <div class="setting-item">
+                    <label for="mock-police-detector-toggle" class="setting-label">Show Detector Preview</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="mock-police-detector-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="panel-footer" style="justify-content: space-between;">
+            <button id="police-back-btn" class="action-btn secondary-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            
+            <div>
+                <button id="police-reset-settings" class="action-btn secondary-btn">Reset</button>
+                <button id="police-save-settings" class="action-btn primary-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="changelog-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-cloud-arrow-down"></i> New Update Available!</h2>
+                <button id="close-changelog" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="version-row">
+                    <div class="v-box current">
+                        <span>Current</span>
+                        <strong id="modal-current-ver">1.0.0</strong>
+                    </div>
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <div class="v-box new">
+                        <span>New</span>
+                        <strong id="modal-new-ver">1.0.1</strong>
+                    </div>
+                </div>
+                <div class="changelog-list">
+                    <h3>Changelog:</h3>
+                    <ul id="modal-changelog-text">
+                        </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+    <div id="template-save-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-floppy-disk"></i> Save Template</h2>
+                <button id="close-template-modal" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="template-input-name">Template Name</label>
+                    <input type="text" id="template-input-name" placeholder="E.g., Highway - Strict" maxlength="30" style="width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-template-save" class="action-btn secondary-btn">Cancel</button>
+                <button id="confirm-template-save" class="action-btn primary-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="jquery.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
